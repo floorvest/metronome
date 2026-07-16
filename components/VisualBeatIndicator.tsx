@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import type { TimeSignature } from "@/lib/types";
+import type { TimeSignature } from "../lib/types";
 
 interface VisualBeatIndicatorProps {
   currentBeat: number;

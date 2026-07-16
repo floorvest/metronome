@@ -1,8 +1,8 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { TimeSignature } from "@/lib/types";
-import { MetronomeScheduler } from "@/lib/audio-engine";
+import type { TimeSignature } from "../lib/types";
+import { MetronomeScheduler } from "../lib/audio-engine";
 import TempoControl from "./TempoControl";
 import TimeSignatureSelector from "./TimeSignatureSelector";
 import VisualBeatIndicator from "./VisualBeatIndicator";
@@ -17,7 +17,6 @@ export default function Metronome() {
 
   const schedulerRef = useRef<MetronomeScheduler | null>(null);
 
-  // Keep scheduler in sync with mutable state without re-creating it
   const bpmRef = useRef(bpm);
   const timeSignatureRef = useRef(timeSignature);
   const isMutedRef = useRef(isMuted);
@@ -64,7 +63,6 @@ export default function Metronome() {
     setIsMuted((prev) => !prev);
   }, []);
 
-  // Cleanup on unmount
   useEffect(() => {
     return () => {
       schedulerRef.current?.stop();

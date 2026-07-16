@@ -1,6 +1,6 @@
 "use client";
 
-import { registerTap, resetTaps } from "@/lib/tap-tempo";
+import { registerTap } from "../lib/tap-tempo";
 
 interface TempoControlProps {
   bpm: number;

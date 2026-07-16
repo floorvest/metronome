@@ -1,6 +1,6 @@
 "use client";
 
-import type { TimeSignature } from "@/lib/types";
+import type { TimeSignature } from "../lib/types";
 
 const SIGNATURES: { value: TimeSignature; label: string }[] = [
   { value: "4/4", label: "4/4" },
