@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useRef } from "react";
 import {
   init,
   start,
@@ -8,8 +8,8 @@ import {
   updateBpm,
   updateTimeSignature,
   setMuted,
-} from "@/utils/AudioEngine";
-import { recordTap, resetTaps } from "@/utils/TapTempo";
+} from "../utils/AudioEngine";
+import { recordTap, resetTaps } from "../utils/TapTempo";
 
 type TimeSignature = "4/4" | "3/4" | "2/4" | "6/8";
 
@@ -18,6 +18,154 @@ const SIG_MAP: Record<TimeSignature, number> = {
   "3/4": 3,
   "2/4": 2,
   "6/8": 6,
+};
+
+const styles = {
+  card: {
+    width: "100%",
+    maxWidth: 420,
+    margin: "0 auto",
+    padding: "clamp(16px, 5vw, 32px)",
+    background: "#1f2937",
+    borderRadius: 16,
+    boxShadow: "0 25px 50px -12px rgba(0,0,0,0.5)",
+    display: "flex",
+    flexDirection: "column" as const,
+    alignItems: "center",
+    gap: 24,
+    userSelect: "none" as const,
+  },
+  indicatorOuter: {
+    position: "relative" as const,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    width: 96,
+    height: 96,
+  },
+  indicator: (flash: "accent" | "tick" | null) => ({
+    width: 80,
+    height: 80,
+    borderRadius: "50%",
+    border: "4px solid #6b7280",
+    transition: "all 60ms ease",
+    background:
+      flash === "accent"
+        ? "#facc15"
+        : flash === "tick"
+          ? "#4ade80"
+          : "#4b5563",
+    borderColor:
+      flash === "accent"
+        ? "#fef08a"
+        : flash === "tick"
+          ? "#bbf7d0"
+          : "#6b7280",
+    transform: flash
+      ? flash === "accent"
+        ? "scale(1.1)"
+        : "scale(1.05)"
+      : "scale(1)",
+    boxShadow: flash
+      ? flash === "accent"
+        ? "0 0 30px rgba(250,204,21,0.7)"
+        : "0 0 20px rgba(74,222,128,0.6)"
+      : "none",
+  }),
+  bpmInput: {
+    width: 112,
+    textAlign: "center" as const,
+    fontSize: "3.75rem",
+    fontWeight: 700,
+    background: "transparent",
+    color: "#f9fafb",
+    border: "none",
+    borderBottom: "2px solid #6b7280",
+    outline: "none",
+    transition: "border-color 0.2s",
+    MozAppearance: "textfield",
+  },
+  bpmLabel: {
+    color: "#9ca3af",
+    fontSize: "0.875rem",
+    marginTop: 4,
+  },
+  slider: {
+    width: "100%",
+    height: 8,
+    borderRadius: 8,
+    appearance: "none" as const,
+    cursor: "pointer",
+    background: "#4b5563",
+    outline: "none",
+  },
+  sigGroup: {
+    display: "flex",
+    gap: 8,
+  },
+  sigBtn: (active: boolean) => ({
+    padding: "8px 16px",
+    borderRadius: 8,
+    fontSize: "1.125rem",
+    fontWeight: 600,
+    minWidth: 56,
+    border: "none",
+    cursor: "pointer",
+    transition: "background 0.2s",
+    background: active ? "#facc15" : "#374151",
+    color: active ? "#111827" : "#d1d5db",
+  }),
+  controls: {
+    display: "flex",
+    gap: 12,
+    width: "100%",
+  },
+  startStopBtn: (running: boolean) => ({
+    flex: 1,
+    padding: "16px 0",
+    borderRadius: 12,
+    fontSize: "1.25rem",
+    fontWeight: 700,
+    border: "none",
+    cursor: "pointer",
+    minHeight: 56,
+    transition: "background 0.2s",
+    background: running ? "#ef4444" : "#22c55e",
+    color: "#fff",
+  }),
+  tapBtn: {
+    flex: 1,
+    padding: "16px 0",
+    borderRadius: 12,
+    fontSize: "1.25rem",
+    fontWeight: 700,
+    border: "none",
+    cursor: "pointer",
+    minHeight: 56,
+    transition: "background 0.2s",
+    background: "#eab308",
+    color: "#111827",
+  },
+  muteBtn: (muted: boolean) => ({
+    padding: "16px",
+    borderRadius: 12,
+    fontSize: "1.25rem",
+    fontWeight: 700,
+    border: "none",
+    cursor: "pointer",
+    minHeight: 56,
+    minWidth: 56,
+    transition: "background 0.2s",
+    background: muted ? "#6b7280" : "#374151",
+    color: muted ? "#fff" : "#d1d5db",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+  }),
+  svgIcon: {
+    width: 24,
+    height: 24,
+  },
 };
 
 export default function Metronome() {
@@ -29,9 +177,6 @@ export default function Metronome() {
 
   const isRunningRef = useRef(isRunning);
   isRunningRef.current = isRunning;
-
-  const isMutedRef = useRef(isMuted);
-  isMutedRef.current = isMuted;
 
   const [initialised, setInitialised] = useState(false);
 
@@ -100,139 +245,72 @@ export default function Metronome() {
   }, []);
 
   return (
-    <div
-      className="
-        w-full max-w-md mx-auto p-6 sm:p-8
-        bg-gray-800 rounded-2xl shadow-2xl
-        flex flex-col items-center gap-6
-        select-none
-      "
-      onClick={handleInit}
-    >
-      {/* ---- Visual Beat Indicator ---- */}
-      <div className="relative flex items-center justify-center w-24 h-24">
-        <div
-          className={`
-            w-20 h-20 rounded-full border-4 transition-all duration-[60ms]
-            ${flash === "accent"
-              ? "bg-yellow-400 border-yellow-200 scale-110 shadow-[0_0_30px_rgba(250,204,21,0.7)]"
-              : flash === "tick"
-                ? "bg-green-400 border-green-200 scale-105 shadow-[0_0_20px_rgba(74,222,128,0.6)]"
-                : "bg-gray-600 border-gray-500 scale-100 shadow-none"
-            }
-          `}
-        />
+    <div style={styles.card} onClick={handleInit}>
+      {/* Visual Beat Indicator */}
+      <div style={styles.indicatorOuter}>
+        <div style={styles.indicator(flash)} />
       </div>
 
-      {/* ---- Tempo Display ---- */}
-      <div className="text-center">
+      {/* Tempo Display */}
+      <div style={{ textAlign: "center" }}>
         <input
           type="number"
           min={20}
           max={300}
           value={bpm}
           onChange={(e) => handleBpmChange(Number(e.target.value))}
-          className="
-            w-28 text-center text-6xl font-bold
-            bg-transparent text-white
-            border-b-2 border-gray-500
-            focus:outline-none focus:border-yellow-400
-            transition-colors
-            [-moz-appearance:textfield]
-            [&::-webkit-inner-spin-button]:appearance-none
-            [&::-webkit-outer-spin-button]:appearance-none
-          "
+          style={styles.bpmInput}
           aria-label="Tempo in BPM"
+          onFocus={(e) => e.target.select()}
         />
-        <p className="text-gray-400 text-sm mt-1">BPM</p>
+        <p style={styles.bpmLabel}>BPM</p>
       </div>
 
-      {/* ---- Tempo Slider ---- */}
+      {/* Tempo Slider */}
       <input
         type="range"
         min={20}
         max={300}
         value={bpm}
         onChange={(e) => handleBpmChange(Number(e.target.value))}
-        className="w-full h-2 bg-gray-600 rounded-lg appearance-none cursor-pointer
-          accent-yellow-400
-          [&::-webkit-slider-thumb]:appearance-none
-          [&::-webkit-slider-thumb]:w-6
-          [&::-webkit-slider-thumb]:h-6
-          [&::-webkit-slider-thumb]:rounded-full
-          [&::-webkit-slider-thumb]:bg-yellow-400
-          [&::-webkit-slider-thumb]:cursor-pointer
-          [&::-webkit-slider-thumb]:shadow-md"
+        style={styles.slider}
         aria-label="Tempo slider"
       />
 
-      {/* ---- Time Signature ---- */}
-      <div className="flex gap-2">
+      {/* Time Signature */}
+      <div style={styles.sigGroup}>
         {(["4/4", "3/4", "2/4", "6/8"] as TimeSignature[]).map((s) => (
           <button
             key={s}
             onClick={() => handleSigChange(s)}
-            className={`
-              px-4 py-2 rounded-lg text-lg font-semibold min-w-[56px]
-              transition-colors
-              ${sig === s
-                ? "bg-yellow-400 text-gray-900"
-                : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-              }
-            `}
+            style={styles.sigBtn(sig === s)}
           >
             {s}
           </button>
         ))}
       </div>
 
-      {/* ---- Main Controls ---- */}
-      <div className="flex gap-3 w-full">
-        {/* Start / Stop */}
+      {/* Main Controls */}
+      <div style={styles.controls}>
         <button
           onClick={handleStartStop}
-          className={`
-            flex-1 py-4 rounded-xl text-xl font-bold
-            transition-colors min-h-[56px]
-            ${isRunning
-              ? "bg-red-500 hover:bg-red-400 text-white"
-              : "bg-green-500 hover:bg-green-400 text-white"
-            }
-          `}
+          style={styles.startStopBtn(isRunning)}
         >
           {isRunning ? "Stop" : "Start"}
         </button>
-
-        {/* Tap Tempo */}
-        <button
-          onClick={handleTap}
-          className="
-            flex-1 py-4 rounded-xl text-xl font-bold
-            bg-yellow-500 hover:bg-yellow-400 text-gray-900
-            transition-colors min-h-[56px]
-          "
-        >
+        <button onClick={handleTap} style={styles.tapBtn}>
           Tap
         </button>
-
-        {/* Mute */}
         <button
           onClick={handleMuteToggle}
-          className={`
-            py-4 px-4 rounded-xl text-xl font-bold
-            transition-colors min-h-[56px] min-w-[56px]
-            ${isMuted
-              ? "bg-gray-500 hover:bg-gray-400 text-white"
-              : "bg-gray-700 hover:bg-gray-600 text-gray-300"
-            }
-          `}
+          style={styles.muteBtn(isMuted)}
           aria-label={isMuted ? "Unmute" : "Mute"}
           title={isMuted ? "Unmute" : "Mute"}
         >
           {isMuted ? (
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 mx-auto"
+              style={styles.svgIcon}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
@@ -252,7 +330,7 @@ export default function Metronome() {
           ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-6 w-6 mx-auto"
+              style={styles.svgIcon}
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"

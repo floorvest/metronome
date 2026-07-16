@@ -1,4 +1,4 @@
-import Metronome from "@/components/Metronome";
+import Metronome from "../components/Metronome";
 
 export default function Home() {
   return <Metronome />;
