@@ -2,11 +2,10 @@ const { execSync } = require("child_process");
 const fs = require("fs");
 const path = require("path");
 
-// Next.js 15.x: explicitly unset TURBOPACK to force webpack build
+// The environment has TURBOPACK=1 set, which forces Turbopack even on versions
+// that don't support it for builds. We must explicitly remove it.
 const env = { ...process.env };
 delete env.TURBOPACK;
-delete env.NEXT_TURBOPACK;
-delete env.__NEXT_TURBOPACK;
 
 try {
   execSync("npx next build", { stdio: "inherit", env });
