@@ -1,2 +1,0 @@
-BUILD FAILED
-Command failed: node node_modules/.bin/next build

@@ -9,7 +9,7 @@ RUN npm install --ignore-scripts
 # Copy source code
 COPY . .
 
-# Unset TURBOPACK to ensure webpack build (static export requires webpack)
+# Build with webpack (unset TURBOPACK to avoid Next.js 15 Turbopack build)
 RUN unset TURBOPACK && npx next build
 
 # ---- Production Stage ----

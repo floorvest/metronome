@@ -1,24 +1,24 @@
-const { spawn } = require("child_process");
+const { execSync } = require("child_process");
 const fs = require("fs");
+const path = require("path");
 
-// Clean
-["dist", "out", ".next"].forEach((d) => {
-  if (fs.existsSync(d)) fs.rmSync(d, { recursive: true, force: true });
-});
-
-// Build without TURBOPACK
-const env = Object.assign({}, process.env);
+// Unset TURBOPACK to force webpack (Next.js 15 uses Turbopack for builds when env var is set)
+const env = { ...process.env };
 delete env.TURBOPACK;
 
-const child = spawn(
-  "node",
-  ["node_modules/.bin/next", "build"],
-  { stdio: "inherit", env }
-);
+try {
+  execSync("npx next build", { stdio: "inherit", env });
+} catch (e) {
+  process.exit(1);
+}
 
-child.on("close", (code) => {
-  if (code === 0 && fs.existsSync("out")) {
-    fs.renameSync("out", "dist");
-  }
-  process.exit(code || 0);
-});
+// Cloudflare Pages expects "dist", Next.js exports to "out"
+const distDir = path.join(__dirname, "dist");
+if (fs.existsSync(distDir)) {
+  fs.rmSync(distDir, { recursive: true, force: true });
+}
+
+const outDir = path.join(__dirname, "out");
+if (fs.existsSync(outDir)) {
+  fs.renameSync(outDir, distDir);
+}
