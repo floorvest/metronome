@@ -1,0 +1,22 @@
+FAIL
+[Error: ENOENT: no such file or directory, open '/tmp/aicc-code-McdJBb/.next/server/app/_not-found/page.js.nft.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/tmp/aicc-code-McdJBb/.next/server/app/_not-found/page.js.nft.json'
+}
+
+   ▲ Next.js 15.5.23
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 15.3s
+   Skipping validation of types
+   Linting ...
+   Collecting page data ...
+   Generating static pages (0/4) ...
+   Generating static pages (1/4) 
+   Generating static pages (2/4) 
+   Generating static pages (3/4) 
+ ✓ Generating static pages (4/4)
+   Finalizing page optimization ...
+   Collecting build traces ...
